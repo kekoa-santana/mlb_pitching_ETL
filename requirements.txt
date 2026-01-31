@@ -1,0 +1,22 @@
+# MLB Pitching ETL Dependencies
+
+# Database
+sqlalchemy>=2.0
+psycopg[binary]>=3.0
+alembic>=1.12
+
+# Data Processing
+pandas>=2.0
+numpy>=1.24
+pybaseball>=2.3
+
+# HTTP & Environment
+requests>=2.28
+python-dotenv>=1.0
+
+# Visualizations
+matplotlib>=3.7
+seaborn>=0.12
+
+# File Formats
+pyarrow>=14.0
