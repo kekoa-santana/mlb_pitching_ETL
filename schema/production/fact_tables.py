@@ -86,6 +86,10 @@ FACT_PA_COLS: dict[str, ColumnSpec] = {
         name='bat_score_diff',
         dtype='SmallInteger'
     ),
+    'last_pitch_number': ColumnSpec(
+        name='last_pitch_number',
+        dtype='SmallInteger'
+    ),
     'created_at': ColumnSpec(
         name='created_at',
         dtype='TIMESTAMP(timezone=True)',

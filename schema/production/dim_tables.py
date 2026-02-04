@@ -76,6 +76,12 @@ DIM_PLAYER_COLS: dict[str, ColumnSpec] = {
     'sz_bot': ColumnSpec(
         name='sz_bot',
         dtype='REAL'
+    ),
+    'created_at': ColumnSpec(
+        name='created_at',
+        dtype='TIMESTAMP(timezone=True)',
+        nullable=False,
+        server_default='now()'
     )
 }
 
@@ -120,6 +126,12 @@ DIM_TEAM_COLS: dict[str, ColumnSpec] = {
     'location': ColumnSpec(
         name='location',
         dtype='Text'
+    ),
+    'created_at': ColumnSpec(
+        name='created_at',
+        dtype='TIMESTAMP(timezone=True)',
+        nullable=False,
+        server_default='now()'
     )
 }
 
@@ -152,6 +164,12 @@ DIM_GAME_COLS: dict[str, ColumnSpec] = {
     'away_team': ColumnSpec(
         name='away_team',
         dtype='Text'
+    ),
+    'created_at': ColumnSpec(
+        name='created_at',
+        dtype='TIMESTAMP(timezone=True)',
+        nullable=False,
+        server_default='now()'
     )
 }
 

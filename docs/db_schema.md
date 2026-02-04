@@ -6,7 +6,7 @@
     - game_type text
     - home_team text
     - away_team text
-    - created_at timestamptz not null
+    - created_at timestamptz not null default now()
 - Indexes:
     - dim_game_pkey PRIMARY KEY game_pk
     - idx_dim_game_date game_date
@@ -17,10 +17,24 @@
 ##### production.dim_player
 - Columns:
     - player_id bigint not null
-    - player_name text
-    - p_throws text
-    - stand text
-    - created_at timestamptz not null
+    - full_name text not null
+    - team_id bigint not null
+    - first_name text
+    - last_name text
+    - birth_date date
+    - age smallint
+    - height text
+    - weight smallint
+    - active boolean
+    - primary_position_code smallint
+    - primary_position varchar(4)
+    - draft_year smallint
+    - mlb_debut_date date
+    - bat_side varchar(1)
+    - pitch_hand varchar(1)
+    - sz_top real
+    - sz_bot real
+    - created_at timestamptz not null default now()
 - Indexes: dim_player_pkey PRIMARY KEY player_id
 - Referenced by:
     - TABLE "production.fact_pa" CONSTRAINT "fact_pa_batter_id_fkey" FOREIGN KEY (batter_id) REFERENCES production.dim_player(player_id)
@@ -28,9 +42,24 @@
     - TABLE "production.fact_pitch" CONSTRAINT "fact_pitch_batter_id_fkey" FOREIGN KEY (batter_id) REFERENCES production.dim_player(player_id)
     - TABLE "production.fact_pitch" CONSTRAINT "fact_pitch_pitcher_id_fkey" FOREIGN KEY (pitcher_id) REFERENCES production.dim_player(player_id)
 
+##### production.dim_team
+- Columns:
+    - team_id bigint not null
+    - team_name text not null
+    - full_name text
+    - abbreviation varchar(4)
+    - venue text
+    - division text
+    - division_id bigint
+    - location text
+    - created_at timestamptz not null default now()
+- Indexes: dim_team_pkey PRIMARY KEY team_id
+- Referenced by:
+    - TABLE "production.dim_player" CONSTRAINT "dim_player_team_id_fkey" FOREIGN KEY (team_id) REFERENCES production.dim_team(team_id)
+
 ##### production.fact_pitch
 - Columns:
-    - pitch_id bigint not null
+    - pitch_id bigint not null (identity)
     - pa_id bigint not null
     - game_pk bigint not null
     - pitcher_id bigint not null
@@ -41,9 +70,9 @@
     - pitch_name text
     - description text
     - release_speed real
-    - release_extension real
     - effective_speed real
     - release_spin_rate real
+    - release_extension real
     - spin_axis real
     - pfx_x real
     - pfx_z real
@@ -55,11 +84,12 @@
     - outs_when_up smallint
     - bat_score_diff smallint
     - is_whiff boolean
+    - is_called_strike boolean
     - is_bip boolean
     - is_swing boolean
     - is_foul boolean
-    - is_called_strike boolean
-    - created_at timestamptz not null now()
+    - batter_stand varchar(1)
+    - created_at timestamptz not null default now()
 - Indexes:
     - "fact_pitch_pkey" PRIMARY KEY, btree (pitch_id)
     - "idx_fact_pitch_game" btree (game_pk)
@@ -74,28 +104,30 @@
     - "fact_pitch_pitcher_id_fkey" FOREIGN KEY (pitcher_id) REFERENCES production.dim_player(player_id)
 - Referenced by:
     - TABLE "production.sat_batted_balls" CONSTRAINT "sat_batted_balls_pitch_id_fkey" FOREIGN KEY (pitch_id) REFERENCES production.fact_pitch(pitch_id)
+    - TABLE "production.sat_pitch_shape" CONSTRAINT "sat_pitch_shape_pitch_id_fkey" FOREIGN KEY (pitch_id) REFERENCES production.fact_pitch(pitch_id)
 
 ##### production.fact_pa
 - Columns:
-    - pa_id               bigint    not null 
-    - game_pk             bigint    not null 
-    - pitcher_id          bigint    not null 
-    - batter_id           bigint    not null 
-    - game_counter        integer   not null 
-    - pitcher_pa_number   integer            
-    - times_through_order smallint           
-    - balls               smallint           
-    - strikes             smallint           
-    - outs_when_up        smallint           
-    - inning              integer            
-    - inning_topbot       text               
-    - events              text               
-    - bat_score           smallint           
-    - fld_score           smallint           
-    - post_bat_score      smallint           
-    - bat_score_diff      smallint           
-    - created_at          timestamptz not null now()    
-    - last_pitch_number   smallint           
+    - pa_id bigint not null (identity)
+    - game_pk bigint not null
+    - pitcher_id bigint not null
+    - batter_id bigint not null
+    - game_counter integer not null
+    - last_pitch_number smallint
+    - pitcher_pa_number integer
+    - times_through_order smallint
+    - balls smallint
+    - strikes smallint
+    - outs_when_up smallint
+    - inning integer
+    - inning_topbot text
+    - description text
+    - events text
+    - bat_score smallint
+    - fld_score smallint
+    - post_bat_score smallint
+    - bat_score_diff smallint
+    - created_at timestamptz not null default now()
 - Indexes
     - "fact_pa_pkey" PRIMARY KEY, btree (pa_id)
     - "idx_fact_pa_game" btree (game_pk)
@@ -110,32 +142,32 @@
 
 ##### production.sat_batted_balls
 - Columns:
-    - pitch_id        bigint      not null 
-    - bb_type         text                 
-    - events          text                 
-    - launch_speed    real                 
-    - launch_angle    real                 
-    - hit_distance_sc real                 
-    - hc_x            real                 
-    - hc_y            real                 
-    - is_homerun      boolean              
-    - created_at      timestamptz not null now()
-    - pa_id           bigint               
-    - xba             real                 
-    - xslg            real                 
-    - xwoba           real                 
-    - woba_value      real                 
-    - babip_value     smallint             
-    - iso_value       smallint             
-    - hit_location    smallint             
-    - hard_hit        boolean              
-    - sweet_spot      boolean              
-    - ideal_contact   boolean              
-    - la_band         text                 
-    - ev_band         text                 
-    - hc_x_centered   real                 
-    - spray_bucket    text
-- Indexes: 
+    - pitch_id bigint not null
+    - pa_id bigint
+    - bb_type text
+    - events text
+    - launch_speed real
+    - launch_angle real
+    - hit_distance_sc real
+    - hc_x real
+    - hc_y real
+    - hc_x_centered real
+    - is_homerun boolean
+    - xba real
+    - xslg real
+    - xwoba real
+    - woba_value real
+    - babip_value smallint
+    - iso_value smallint
+    - hit_location smallint
+    - hard_hit boolean
+    - sweet_spot boolean
+    - ideal_contact boolean
+    - la_band text
+    - ev_band text
+    - spray_bucket text
+    - created_at timestamptz not null default now()
+- Indexes:
     - "sat_batted_balls_pkey" PRIMARY KEY, btree (pitch_id)
     - "idx_sat_bb_type" btree (bb_type)
 - Foreign-key constraints:
@@ -144,20 +176,27 @@
 ##### production.sat_pitch_shape
 - Columns:
     - pitch_id bigint not null
-    - release_pos_x double precision
-    - release_pos_y double precision
-    - release_spin_rate double precision
-    - release_extension double precision
-    - release_speed double precision
-    - spin_axis double precision
-    - pfx_x double precision
-    - pfx_z double precision
-    - vx0 double precision
-    - vy0 double precision
-    - vz0 double precision
-    - ax double precision
-    - ay double precision
-    - az double precision
-    - plate_x double precision
-    - plate_z double_precision
-    - created_at timestamptz not null now()
+    - release_pos_x real
+    - release_pos_y real
+    - release_pos_z real
+    - release_spin_rate real
+    - release_extension real
+    - release_speed real
+    - spin_axis real
+    - pfx_x real
+    - pfx_z real
+    - vx0 real
+    - vy0 real
+    - vz0 real
+    - ax real
+    - ay real
+    - az real
+    - plate_x real
+    - plate_z real
+    - sz_top real
+    - sz_bot real
+    - created_at timestamptz not null default now()
+- Indexes:
+    - "sat_pitch_shape_pkey" PRIMARY KEY, btree (pitch_id)
+- Foreign-key constraints:
+    - "sat_pitch_shape_pitch_id_fkey" FOREIGN KEY (pitch_id) REFERENCES production.fact_pitch(pitch_id)
